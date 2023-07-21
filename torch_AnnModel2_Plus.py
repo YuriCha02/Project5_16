@@ -11,12 +11,12 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 #model2와 동일
 class Model(nn.Module):
-    def __init__(self, input_cnt, hidden_config, output_cnt):
+    def __init__(self, input_cnt, set_hidden, output_cnt):
         super(Model, self).__init__()
         self.layers = nn.ModuleList()
 
         last_cnt = input_cnt
-        for hidden_cnt in hidden_config:
+        for hidden_cnt in set_hidden:
             self.layers.append(nn.Linear(last_cnt, hidden_cnt))
             self.layers.append(nn.ReLU())
             last_cnt = hidden_cnt
@@ -30,10 +30,10 @@ class Model(nn.Module):
         return x
 
 # 데이터 불균형할경우 adjust_ratio를 사용할수있도록 매개변수 추가
-def binary_main(epoch_count = 10, mb_size = 10, report=1, train_ratio = 0.6, adjust_ratio = True, hidden_config = [1, 2]):
+def binary_main(epoch_count = 10, mb_size = 10, report=1, train_ratio = 0.6, adjust_ratio = True, set_hidden = [1, 2]):
     data, input_cnt, output_cnt = binary_load_dataset(adjust_ratio)
 
-    model = Model(input_cnt, hidden_config, output_cnt).to(device)
+    model = Model(input_cnt, set_hidden, output_cnt).to(device)
     criterion = nn.BCELoss()
     optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE)
 
