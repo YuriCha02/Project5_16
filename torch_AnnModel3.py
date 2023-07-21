@@ -5,15 +5,15 @@ import pandas as pd
 import time
 
 class Model(nn.Module):
-    def __init__(self, input_cnt, hidden_config, output_cnt):
+    def __init__(self, input_cnt, set_hidden, output_cnt):
         super(Model, self).__init__()
         self.hidden_layers = nn.ModuleList([])
-        for i in range(len(hidden_config)):
+        for i in range(len(set_hidden)):
             if i == 0:
-                self.hidden_layers.append(nn.Linear(input_cnt, hidden_config[i])) #입력층과 은닉층 fully-connected
+                self.hidden_layers.append(nn.Linear(input_cnt, set_hidden[i])) #입력층과 은닉층 fully-connected
             else:
-                self.hidden_layers.append(nn.Linear(hidden_config[i-1], hidden_config[i])) # 은닉층간의 fully-connected
-        self.output_layer = nn.Linear(hidden_config[-1], output_cnt) # 은닉층과 출력층 fully-connected
+                self.hidden_layers.append(nn.Linear(set_hidden[i-1], set_hidden[i])) # 은닉층간의 fully-connected
+        self.output_layer = nn.Linear(set_hidden[-1], output_cnt) # 은닉층과 출력층 fully-connected
         self.relu = nn.ReLU()
     
     def forward(self, x):
@@ -71,7 +71,7 @@ def train_and_test(model, criterion, optimizer, train_loader, test_loader, num_e
         
         print(f"Epoch {epoch+1} ({epoch_time:.2f} sec): Train - Loss = {loss.item()}, Accuracy = {train_acc:.3f} / Test - Accuracy = {test_acc:.3f}, Time Duration = {epoch_time:.3f}sec")
  
-def multiple_main(epoch_count = 10, batch_size = 10, learning_rate = 0.001, train_ratio = 0.6):
+def multiple_main(epoch_count = 10, batch_size = 10, learning_rate = 0.001, train_ratio = 0.6, set_hidden = [2, 5]):
 
     full_dataset = MultiClassDataset('./mulit_classification_data.csv')
     train_size = int(train_ratio * len(full_dataset))
@@ -82,7 +82,7 @@ def multiple_main(epoch_count = 10, batch_size = 10, learning_rate = 0.001, trai
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
 
 
-    model = Model(27, [2,5], 7) #마찬가지로 은닉측을 2, 5보다 더 늘려서 테스트 해보기
+    model = Model(27, set_hidden, 7) #마찬가지로 은닉측을 2, 5보다 더 늘려서 테스트 해보기
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
