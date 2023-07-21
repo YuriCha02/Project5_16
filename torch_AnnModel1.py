@@ -39,7 +39,7 @@ class Model(nn.Module):
         return x
 
 
-def main(epoch_count:int=10, mb_size:int=10, report:int=1, train_ratio:float=0.8, set_hidden = (1, 2)): 
+def main(epoch_count:int=10, mb_size:int=10, report:int=1, train_ratio:float=0.8, set_hidden = (1, 2)): #report : 에포크당 출력간격
     #Baseline에서는 set_hidden(1,2)을 ai_program에서 설정했지만 이를 하이퍼파라미터(arg)방식으로 사용자가 쉽게 설정하는 방법도 생각해볼 수 있음
     data, input_cnt, output_cnt = load_dataset() # 데이터와 입력층과 출력층을 지정함수 load_dataset에서 호출
     model = Model(input_cnt, set_hidden, output_cnt).to(device)
