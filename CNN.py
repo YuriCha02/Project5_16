@@ -73,7 +73,7 @@ def train_and_test(model, criterion, optimizer, train_loader, test_loader, num_e
         
         print(f"Epoch {epoch+1} ({epoch_time:.2f} sec): Train - Loss = {loss.item()}, Accuracy = {train_acc:.3f} / Test - Accuracy = {test_acc:.3f}, Time Duration = {epoch_time:.3f}sec")
  
-def multiple_main(epoch_count=100, batch_size=10, learning_rate=0.001, train_ratio=0.8):
+def multiple_main(epoch_count=50, batch_size=10, learning_rate=0.001, train_ratio=0.8):
 
     full_dataset = MultiClassDataset('./mulit_classification_data.csv')
     train_size = int(train_ratio * len(full_dataset))
