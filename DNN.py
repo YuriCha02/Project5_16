@@ -1,28 +1,24 @@
+#Baseline Deep Fully Connected Neural Network (DNN)
+import time
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 import pandas as pd
-import time
 
 class Model(nn.Module):
-    def __init__(self, input_cnt, set_hidden, output_cnt):
+    def __init__(self, input_size, num_classes):
         super(Model, self).__init__()
-        self.hidden_layers = nn.ModuleList([])
-        for i in range(len(set_hidden)):
-            if i == 0:
-                self.hidden_layers.append(nn.Linear(input_cnt, set_hidden[i])) #입력층과 은닉층 fully-connected
-            else:
-                self.hidden_layers.append(nn.Linear(set_hidden[i-1], set_hidden[i])) # 은닉층간의 fully-connected
-        self.output_layer = nn.Linear(set_hidden[-1], output_cnt) # 은닉층과 출력층 fully-connected
-        self.relu = nn.ReLU()
-    
+        self.fc1 = nn.Linear(input_size, 128)
+        self.fc2 = nn.Linear(128, 64)
+        self.fc3 = nn.Linear(64, num_classes)
+
     def forward(self, x):
-        for hidden_layer in self.hidden_layers:
-            x = self.relu(hidden_layer(x))
-        x = self.output_layer(x)
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
         return x
 
-# 파이토치의 Dataset 클래스 상속받으면 간편하게 사용가능
 class MultiClassDataset(Dataset):
     def __init__(self, path):
         self.dataset = pd.read_csv(path).values
@@ -71,7 +67,7 @@ def train_and_test(model, criterion, optimizer, train_loader, test_loader, num_e
         
         print(f"Epoch {epoch+1} ({epoch_time:.2f} sec): Train - Loss = {loss.item()}, Accuracy = {train_acc:.3f} / Test - Accuracy = {test_acc:.3f}, Time Duration = {epoch_time:.3f}sec")
  
-def multiple_main(epoch_count = 10, batch_size = 10, learning_rate = 0.001, train_ratio = 0.6, set_hidden = [2, 5]):
+def multiple_main(epoch_count=50, batch_size=10, learning_rate=0.001, train_ratio=0.8):
 
     full_dataset = MultiClassDataset('./mulit_classification_data.csv')
     train_size = int(train_ratio * len(full_dataset))
@@ -82,7 +78,7 @@ def multiple_main(epoch_count = 10, batch_size = 10, learning_rate = 0.001, trai
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
 
 
-    model = Model(27, set_hidden, 7) #마찬가지로 은닉측을 2, 5보다 더 늘려서 테스트 해보기
+    model = Model(input_size = 27, num_classes = 7)
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
