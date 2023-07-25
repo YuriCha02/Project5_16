@@ -10,10 +10,10 @@ import joblib
 def load_data():
     mc_data = pd.read_csv('./mulit_classification_data.csv')
     combined_data = combine_labels(mc_data)
-    combined_data['Width'] = combined_data['X_Maximum'] - combined_data['X_Minimum']
-    combined_data['Length'] = combined_data['Y_Maximum'] - combined_data['Y_Minimum']
-    combined_data['Total_Perimeter'] = combined_data['X_Perimeter'] * combined_data['Y_Perimeter']
-    combined_data['Model_Difference'] = abs(combined_data['TypeOfSteel_A300'] - combined_data['TypeOfSteel_A400'])
+    #combined_data['Width'] = combined_data['X_Maximum'] - combined_data['X_Minimum']
+    #combined_data['Length'] = combined_data['Y_Maximum'] - combined_data['Y_Minimum']
+    #combined_data['Total_Perimeter'] = combined_data['X_Perimeter'] * combined_data['Y_Perimeter']
+    #combined_data['Model_Difference'] = abs(combined_data['TypeOfSteel_A300'] - combined_data['TypeOfSteel_A400'])
 
     return combined_data
     
@@ -58,7 +58,7 @@ def upsampling(X_train_ss, y_train):
     return X_train_sampled, y_train_sampled
 
 clf = MLPClassifier(
-    hidden_layer_sizes=(110, 50),
+    hidden_layer_sizes=(50, 50, 100),
     batch_size = 1,
     max_iter=5000,
     alpha=0.001,
