@@ -1,38 +1,40 @@
+import time
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 import pandas as pd
-import time
+from sklearn.preprocessing import StandardScaler
 
 class Model(nn.Module):
-    def __init__(self, input_cnt, set_hidden, output_cnt):
+    def __init__(self, input_size, num_classes):
         super(Model, self).__init__()
-        self.hidden_layers = nn.ModuleList([])
-        for i in range(len(set_hidden)):
-            if i == 0:
-                self.hidden_layers.append(nn.Linear(input_cnt, set_hidden[i])) #입력층과 은닉층 fully-connected
-            else:
-                self.hidden_layers.append(nn.Linear(set_hidden[i-1], set_hidden[i])) # 은닉층간의 fully-connected
-        self.output_layer = nn.Linear(set_hidden[-1], output_cnt) # 은닉층과 출력층 fully-connected
-        self.relu = nn.ReLU()
-    
+        self.fc1 = nn.Linear(input_size, 256)
+        self.fc2 = nn.Linear(256, 128)
+        self.fc3 = nn.Linear(128, num_classes)
+
     def forward(self, x):
-        for hidden_layer in self.hidden_layers:
-            x = self.relu(hidden_layer(x))
-        x = self.output_layer(x)
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
         return x
 
-# 파이토치의 Dataset 클래스 상속받으면 간편하게 사용가능
 class MultiClassDataset(Dataset):
     def __init__(self, path):
         self.dataset = pd.read_csv(path).values
-        
+        self.x_data = self.dataset[:, :27]  # 독립변수
+        self.y_data = self.dataset[:, 27:]  # 타겟데이터
+
+        # 데이터 스케일링 (평균 0, 표준편차 1)
+        scaler = StandardScaler()
+        self.x_data = scaler.fit_transform(self.x_data)
+
     def __len__(self):
-        return len(self.dataset) # 총데이터수 반환
+        return len(self.dataset)  # 총데이터수 반환
     
     def __getitem__(self, idx):
-        x = self.dataset[idx,:27] #독립변수
-        y = self.dataset[idx,27:] #타겟데이터
+        x = self.x_data[idx]  # 전처리된 독립변수 사용
+        y = self.y_data[idx]  # 타겟데이터
         return torch.tensor(x, dtype=torch.float32), torch.tensor(y, dtype=torch.float32)
 
 def train_and_test(model, criterion, optimizer, train_loader, test_loader, num_epochs):
@@ -69,10 +71,9 @@ def train_and_test(model, criterion, optimizer, train_loader, test_loader, num_e
         end_time = time.time()
         epoch_time = end_time - start_time
         
-        print(f"Epoch {epoch+1} ({epoch_time:.2f} sec): Train - Loss = {loss.item()}, Accuracy = {train_acc:.3f} / Test - Accuracy = {test_acc:.3f}, Time Duration = {epoch_time:.3f}sec")
- 
-def multiple_main(epoch_count = 50, batch_size = 10, learning_rate = 0.001, train_ratio = 0.8, set_hidden = [50, 50, 100]):
+        print(f"Epoch {epoch+1} ({epoch_time:.2f} sec): Train - Loss = {loss.item():.4f}, Accuracy = {train_acc:.3f} / Test - Accuracy = {test_acc:.3f}, Time Duration = {epoch_time:.3f}sec")
 
+def multiple_main(epoch_count=20, batch_size=10, learning_rate=0.01, train_ratio=0.8):
     full_dataset = MultiClassDataset('./mulit_classification_data.csv')
     train_size = int(train_ratio * len(full_dataset))
     test_size = len(full_dataset) - train_size
@@ -81,11 +82,9 @@ def multiple_main(epoch_count = 50, batch_size = 10, learning_rate = 0.001, trai
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
 
-
-    model = Model(27, set_hidden, 7) #마찬가지로 은닉측을 2, 5보다 더 늘려서 테스트 해보기
+    model = Model(input_size=27, num_classes=7)
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-
 
     train_and_test(model, criterion, optimizer, train_loader, test_loader, epoch_count)
 
